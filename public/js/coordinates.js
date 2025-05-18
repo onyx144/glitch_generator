@@ -1,10 +1,8 @@
-// Функция для отслеживания координат выделенной зоны
 function trackCoordinates() {
     const $canvas = $('#canvas');
     let startX, startY;
     let isSelecting = false;
 
-    // Обработчики событий для начала выделения
     $canvas.on('mousedown', function(e) {
         const rect = this.getBoundingClientRect();
         startX = e.clientX - rect.left;
@@ -12,7 +10,6 @@ function trackCoordinates() {
         isSelecting = true;
     });
 
-    // Обработчики событий для окончания выделения
     $canvas.on('mouseup', function(e) {
         if (!isSelecting) return;
         
@@ -20,13 +17,11 @@ function trackCoordinates() {
         const endX = e.clientX - rect.left;
         const endY = e.clientY - rect.top;
 
-        // Вычисляем координаты выделенной зоны
         const x = Math.min(startX, endX);
         const y = Math.min(startY, endY);
         const width = Math.abs(endX - startX);
         const height = Math.abs(endY - startY);
 
-        // Выводим координаты в консоль
         console.log('Выделенная зона:', {
             x: Math.round(x),
             y: Math.round(y),
@@ -34,7 +29,6 @@ function trackCoordinates() {
             height: Math.round(height)
         });
 
-        // Добавляем визуальное отображение выделенной зоны
         $('<div>')
             .addClass('selection-box')
             .css({
@@ -54,13 +48,11 @@ function trackCoordinates() {
         isSelecting = false;
     });
 
-    // Отмена выделения при выходе за пределы холста
     $canvas.on('mouseout', function() {
         isSelecting = false;
     });
 }
 
-// Запускаем отслеживание координат после загрузки DOM
 $(document).ready(function() {
     trackCoordinates();
 }); 
