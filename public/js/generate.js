@@ -87,9 +87,31 @@ generateBtn.addEventListener('click', () => {
       }
     }
 
+    // TEST: Simply delete marked area
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        const pixelIndex = y * canvas.width + x;
+        if (markedPixels.has(pixelIndex)) {
+          const index = pixelIndex * 4;
+          d[index] = 0;     // Red
+          d[index + 1] = 0; // Green
+          d[index + 2] = 0; // Blue
+          d[index + 3] = 0; // Alpha
+        }
+      }
+    }
+
+    /* Commented out glitch effect code
     // Apply line shifts only to marked areas and their radius
     let glitchedPixels = 0;
     let currentY = 0;
+    
+    // First, create a copy of the original image data
+    const originalImageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
+    const originalData = originalImageData.data;
+    
+    // Create a new array to store the final result
+    const finalImageData = new Uint8ClampedArray(originalData);
     
     for (const line of lineShifts) {
       for (let y = 0; y < line.height; y++) {
@@ -106,11 +128,14 @@ generateBtn.addEventListener('click', () => {
             
             if (targetX >= 0 && targetX < canvas.width) {
               const targetIndex = (sourceY * canvas.width + targetX) * 4;
-              d[targetIndex] = d[sourceIndex];         // Red
-              d[targetIndex + 1] = d[sourceIndex + 1]; // Green
-              d[targetIndex + 2] = d[sourceIndex + 2]; // Blue
-              d[targetIndex + 3] = d[sourceIndex + 3]; // Alpha
-              glitchedPixels++;
+              // Only apply glitch if target pixel is also in marked area
+              if (markedPixels.has(sourceY * canvas.width + targetX)) {
+                finalImageData[targetIndex] = d[sourceIndex];         // Red
+                finalImageData[targetIndex + 1] = d[sourceIndex + 1]; // Green
+                finalImageData[targetIndex + 2] = d[sourceIndex + 2]; // Blue
+                finalImageData[targetIndex + 3] = d[sourceIndex + 3]; // Alpha
+                glitchedPixels++;
+              }
             }
           }
         }
@@ -118,10 +143,13 @@ generateBtn.addEventListener('click', () => {
       currentY += line.height;
     }
 
-    console.log(`🎨 Applied line shift glitch to ${glitchedPixels} pixels`);
+    // Create new ImageData with our final result
+    const finalResult = new ImageData(finalImageData, canvas.width, canvas.height);
+    tempCtx.putImageData(finalResult, 0, 0);
+    */
 
     tempCtx.putImageData(glitchImageData, 0, 0);
-    console.log('✅ Updated temporary canvas with glitch effect');
+    console.log('✅ Updated temporary canvas with test effect');
 
     // Create image element and add download link
     const imgContainer = document.createElement('div');
