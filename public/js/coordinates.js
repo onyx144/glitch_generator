@@ -9,7 +9,7 @@ function trackCoordinates() {
         startY = e.clientY - rect.top;
         isSelecting = true;
     });
-
+   //releasing the mouse button
     $canvas.on('mouseup', function(e) {
         if (!isSelecting) return;
         
