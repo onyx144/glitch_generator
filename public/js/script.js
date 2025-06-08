@@ -32,7 +32,7 @@ function draw(e) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Draw transparent circle on main canvas for visual feedback
+    // Draw transparent circle on main canvas for visual feedback.
     ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
     ctx.beginPath();
     ctx.arc(x, y, 10, 0, Math.PI * 2);
