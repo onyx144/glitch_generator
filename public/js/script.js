@@ -2,24 +2,65 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const upload = document.getElementById('upload');
 const clearBtn = document.getElementById('clear');
+const modeSelect = document.getElementById('mode');
+const imageControls = document.getElementById('imageControls');
+const videoControls = document.getElementById('videoControls');
+const videoPreview = document.getElementById('videoPreview');
 
-// New: Mask Canvas
 const maskCanvas = document.getElementById('maskCanvas');
 const maskCtx = maskCanvas.getContext('2d');
 
 let image = null;
 let isDrawing = false;
+let currentMode = 'image';
 
-// Set a unique, solid color for the mask drawing
+const videoElement = videoPreview;
+let videoLoaded = false;
+let videoObjectUrl = null;
+let videoFile = null;
+
 const MASK_COLOR_R = 255;
 const MASK_COLOR_G = 0;
 const MASK_COLOR_B = 255;
-const MASK_COLOR_A = 255; // Fully opaque
+const MASK_COLOR_A = 255;
 
-// Drawing on main canvas (transparent) and mask canvas (solid)
+function setMode(mode) {
+    currentMode = mode;
+    const isImage = mode === 'image';
+
+    imageControls.style.display = isImage ? 'flex' : 'none';
+    videoControls.style.display = isImage ? 'none' : 'flex';
+    canvas.style.display = isImage ? 'block' : 'none';
+    videoPreview.style.display = isImage ? 'none' : 'block';
+    upload.accept = isImage ? 'image/*' : 'video/*';
+
+    document.getElementById('output').innerHTML = '';
+}
+
+modeSelect.addEventListener('change', () => {
+    setMode(modeSelect.value);
+    resetMedia();
+});
+
+function resetMedia() {
+    image = null;
+    videoLoaded = false;
+    videoFile = null;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+
+    if (videoObjectUrl) {
+        URL.revokeObjectURL(videoObjectUrl);
+        videoObjectUrl = null;
+    }
+    videoPreview.removeAttribute('src');
+    videoPreview.load();
+    upload.value = '';
+}
+
 canvas.addEventListener('mousedown', (e) => {
+    if (currentMode !== 'image') return;
     isDrawing = true;
-    // Start drawing on both canvases
     draw(e);
 });
 canvas.addEventListener('mouseup', () => isDrawing = false);
@@ -32,48 +73,56 @@ function draw(e) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Draw transparent circle on main canvas for visual feedback.
     ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
     ctx.beginPath();
     ctx.arc(x, y, 10, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw solid unique color on mask canvas
     maskCtx.fillStyle = `rgba(${MASK_COLOR_R}, ${MASK_COLOR_G}, ${MASK_COLOR_B}, ${MASK_COLOR_A})`;
     maskCtx.beginPath();
     maskCtx.arc(x, y, 10, 0, Math.PI * 2);
     maskCtx.fill();
 }
 
-// Загрузка изображения (Остается таким же, но также настраивает maskCanvas)
-upload.addEventListener('change', function () { // Corrected 'изменение' to 'change' and 'функция' to 'function'
+upload.addEventListener('change', function () {
     const file = this.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (event) { // Corrected 'функция (событие)' to 'function (event)'
-        image = new Image();
-        image.onload = function () {
-            canvas.width = image.width;
-            canvas.height = image.height;
-            maskCanvas.width = image.width; // Set mask canvas dimensions
-            maskCanvas.height = image.height; // Set mask canvas dimensions
-            ctx.drawImage(image, 0, 0);
-            // Clear mask canvas when new image is loaded
-            maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+
+    if (currentMode === 'image') {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            image = new Image();
+            image.onload = function () {
+                canvas.width = image.width;
+                canvas.height = image.height;
+                maskCanvas.width = image.width;
+                maskCanvas.height = image.height;
+                ctx.drawImage(image, 0, 0);
+                maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+            };
+            image.src = event.target.result;
         };
-        image.src = event.target.result; // Corrected 'событие.target.result' to 'event.target.result'
-    };
-    reader.readAsDataURL(file); // Corrected 'файл' to 'file'
-});
-
-// Очистка
-clearBtn.addEventListener('click', () => { // Corrected 'щелчок' to 'click'
-    if (image) {
-        ctx.drawImage(image, 0, 0); // Redraw original image
+        reader.readAsDataURL(file);
     } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear if no image
+        if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+        videoFile = file;
+        videoObjectUrl = URL.createObjectURL(file);
+        videoLoaded = false;
+        videoPreview.src = videoObjectUrl;
+        videoPreview.onloadedmetadata = () => {
+            videoLoaded = true;
+            console.log('✅ Video loaded:', videoPreview.videoWidth, 'x', videoPreview.videoHeight, videoPreview.duration + 's');
+        };
     }
-    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height); // Always clear mask canvas
 });
 
-// Glitch generation logic
+clearBtn.addEventListener('click', () => {
+    if (image) {
+        ctx.drawImage(image, 0, 0);
+    } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+});
+
+setMode('image');

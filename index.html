@@ -7,21 +7,64 @@
     <link rel="stylesheet" href="public/css/style.css">
 </head>
 <body>
-    
-    <div id="toolbar">
-      <input type="file" id="upload" accept="image/*">
-      <button id="clear">Clear</button>
-      <button id="generate">🎞 Generate Glitch</button>
-     </div>
 
-     <canvas id="canvas"></canvas>
-     <canvas id="maskCanvas" style="display:none;"></canvas>
-     <div id="output"></div>
-     
-     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-     <script src="public/js/script.js"></script>
-     <script src="public/js/generate.js"></script>
-     <script src="public/js/coordinates.js"></script>
+    <h1>Glitch Generator</h1>
+
+    <div id="toolbar">
+        <label>
+            Mode:
+            <select id="mode">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+            </select>
+        </label>
+        <input type="file" id="upload" accept="image/*">
+    </div>
+
+    <div id="imageControls" class="controls-row">
+        <button id="clear">Clear mask</button>
+        <button id="generate">🎞 Generate Glitch</button>
+    </div>
+
+    <div id="videoControls" class="controls-row" style="display:none;">
+        <label class="control-field">
+            Glitch start (sec)
+            <input type="number" id="glitchStart" value="0" min="0" step="0.1">
+        </label>
+        <label class="control-field">
+            Post-glitch duration (sec)
+            <input type="number" id="postGlitchDuration" value="2" min="0" step="0.1">
+        </label>
+        <label class="control-field">
+            FPS
+            <input type="number" id="videoFps" value="30" min="1" max="60">
+        </label>
+        <button id="generateVideo">🎬 Generate Glitch Video</button>
+    </div>
+
+    <p id="videoHint" class="hint" style="display:none;">
+        Glitch applies to the full frame (no mask). Intensity ramps from glitch start to end of video,
+        then the last frame plays fully glitched for the post-glitch duration.
+        Original audio is kept until glitch start, then replaced with glitch.mp3.
+    </p>
+
+    <canvas id="canvas"></canvas>
+    <video id="videoPreview" style="display:none;" controls></video>
+    <canvas id="maskCanvas" style="display:none;"></canvas>
+    <div id="output"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="public/js/glitchCore.js"></script>
+    <script src="public/js/script.js"></script>
+    <script src="public/js/generate.js"></script>
+    <script src="public/js/videoGenerate.js"></script>
+    <script src="public/js/coordinates.js"></script>
+    <script>
+        document.getElementById('mode').addEventListener('change', function () {
+            document.getElementById('videoHint').style.display =
+                this.value === 'video' ? 'block' : 'none';
+        });
+    </script>
 </body>
 </html>
