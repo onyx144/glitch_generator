@@ -4,6 +4,7 @@ const output = document.getElementById('output');
 generateBtn.addEventListener('click', () => {
     console.log('🔄 Starting glitch generation...');
 
+    //ddd 
     if (!image) {
         console.error('❌ Image not loaded!');
         return alert('Please upload an image first');
